@@ -97,12 +97,15 @@ aOrB(classA()); // error
 aOrB(new classA());
 aOrB(new classB());
 
+// 객체들의 type 구별법(속성으로)
+// typescript가 if문에 대해서 type 추론을 매우 정확하게 해줌
+
 type B4 = { type: 'b'; bbb: string };
 type C4 = { type: 'c'; ccc: string };
 type D4 = { type: 'd'; ddd: string };
 
+// 내부의 속성으로 구분하게 해줌(같은 속성이지만 값이 다름)
 function typeCheck(a: B4 | C4 | D4) {
-  //내부의 속성으로 구분하게 해줌
   if (a.type === 'b') {
     a.bbb;
   } else if (a.type === 'c') {
@@ -111,3 +114,59 @@ function typeCheck(a: B4 | C4 | D4) {
     a.ddd;
   }
 }
+
+// 속성 이름으로 구분
+function typeCheckName(a: B4 | C4 | D4) {
+  if ('bbb' in a) {
+    a.type;
+  } else if ('ccc' in a) {
+    a.ccc;
+  } else {
+    a.type;
+  }
+}
+
+// 객체에 태그를 달아둔다 + 라벨을 달아둔다 -> 이런 습관 들이는 것이 좋음
+// 타입검사하기 편하게 객체 만들때는 type을 하나씩 넣어주자
+// 그래야 if문 써서 구별하기 쉬움
+// type을 달아두지 않았다면 차이점을 찾아라
+// const human4 = { type: 'human4', talk()};
+// const dog4 = { type: 'dog4', bow() };
+// const cat4 = { type: 'cat4', meow() };
+
+if ('talk' in a) {
+  // a가 human4인 것을 찾아낼 수 있음
+}
+
+// 커스텀 타입 가이드(is, 형식 조건자)
+// 타입을 구분해주는 커스텀 함수를 내가 직접 만드는 것
+// 지금까지는 js 문법으로만 type 찾는 것을 함 -> typeof, instanceof, in, Array.isArray 같은 것
+interface Cat {
+  meow: number;
+}
+interface Dog {
+  bow: number;
+}
+// 커스텀하게 함수를 만들어줄 수도 있음
+function catOrDog(a: Cat | Dog): a is Dog {
+  // 타입 판별을 내가 직접 만듬
+  if ((a as Cat).meow) {
+    return false;
+  }
+  return true;
+}
+function pet(a: Cat | Dog) {
+  // 위의 함수 사용(직접 만든 타입 가드)
+  if (catOrDog(a)) {
+    console.log(a.bow);
+  }
+  // 이렇게 써도 무방
+  if ('meow' in a) {
+    console.log(a.meow);
+  }
+}
+
+// return 값에 is가 들어가있는 것들은 커스텀 타입가드 함수이다
+// 커스텀 타입가드 함수는 if문 안에 쓰는 것이다
+// if문 안에 써서 ts한테 정확한 타입이 뭔지 알려주는 것
+// type 판별하는 부분은 내가 직접 코딩을 해야함
